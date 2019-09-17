@@ -1,8 +1,6 @@
 package apps;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Hello world!
@@ -10,18 +8,10 @@ import java.util.logging.Logger;
  */
 public class Controller 
 {
-    public static Service servicio;
+    public static HttpServer httpServer;
     
-    public static void main( String[] args )
+    public static void main( String[] args ) throws IOException
     {
-        try {
-            servicio = new Service();
-            servicio.init();
-            servicio.listen();
-        } catch (IOException ex) {
-            Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        httpServer.listen();
     }
-    
-    
 }
