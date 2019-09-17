@@ -25,8 +25,7 @@ import net.sf.image4j.codec.ico.ICOEncoder;
  */
 public class Service {
 
-    public static HashMap<String, Handler> urlsHandler = new HashMap<String, Handler>();
-    private static final int PUERTO = getPort();
+    public static HashMap<String, Handler> urlsHandler = new HashMap<String, Handler>();   
     private static String RUTA_RESOURCES = "src/main/resources";
 
     public static void init() {
@@ -57,44 +56,6 @@ public class Service {
             }
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(Service.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public static void listen() throws IOException {
-        while (true) {
-            ServerSocket serverSocket = null;
-            try {
-                serverSocket = new ServerSocket(PUERTO);
-            } catch (IOException e) {
-                System.err.println("Could not listen on port: " + PUERTO + ".");
-                System.exit(1);
-            }
-
-            Socket clientSocket = null;
-            PrintWriter out = null;
-            BufferedReader in = null;
-            BufferedOutputStream salidaDatos = null;
-            //Recibir multiples solicitudes no concurrentes
-            try {
-                System.out.println("Listo para recibir. Escuchando puerto " + PUERTO);
-                clientSocket = serverSocket.accept();
-                while (!clientSocket.isClosed()) {
-                    // El in y el out son para el flujo de datos por el socket (streams).
-                    out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()),
-                            true);
-                    in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                    salidaDatos = new BufferedOutputStream(clientSocket.getOutputStream()); // Muestra los datos respuesta al cliente.
-                    processRequest(clientSocket, out, in, salidaDatos);
-                }
-                out.close();
-                in.close();
-                clientSocket.close();
-                serverSocket.close();
-
-            } catch (IOException e) {
-                System.err.println("Accept failed.");
-                System.exit(1);
-            }
         }
     }
 

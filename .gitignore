@@ -1,6 +1,6 @@
 
-# Created by https://www.gitignore.io/api/java,maven,eclipse,netbeans,visualstudiocode
-# Edit at https://www.gitignore.io/?templates=java,maven,eclipse,netbeans,visualstudiocode
+# Created by https://www.gitignore.io/api/java,maven,eclipse,netbeans
+# Edit at https://www.gitignore.io/?templates=java,maven,eclipse,netbeans
 
 ### Eclipse ###
 .metadata
@@ -118,15 +118,4 @@ dist/
 nbdist/
 .nb-gradle/
 
-### VisualStudioCode ###
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-### VisualStudioCode Patch ###
-# Ignore all local history of files
-.history
-
-# End of https://www.gitignore.io/api/java,maven,eclipse,netbeans,visualstudiocode
+# End of https://www.gitignore.io/api/java,maven,eclipse,netbeans

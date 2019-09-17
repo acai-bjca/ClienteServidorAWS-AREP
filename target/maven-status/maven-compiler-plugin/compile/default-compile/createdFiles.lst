@@ -1,8 +1,0 @@
-apps/HttpServer.class
-apps/Service.class
-apps/StaticMethodHandler.class
-apps/Web.class
-apps/Controller.class
-apps/Handler.class
-apps/ServiceV1.class
-WebServiceHello.class
