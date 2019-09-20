@@ -14,5 +14,6 @@ public class Controller
     public static void main( String[] args ) throws IOException
     {        
         httpServer = new HttpServer(POOLSIZE);
+        httpServer.listen();
     }
 }

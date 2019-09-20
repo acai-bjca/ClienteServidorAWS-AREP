@@ -170,7 +170,7 @@ public class ServiceV1 {
         if (urlsHandler.containsKey(archivo)) {
             System.out.println("LO encontro");
             Handler h = urlsHandler.get(archivo);
-            archivo = h.process();
+            //archivo = h.process();
             generateResponse("200");
             contentType = "text/html";
             rtaFile1 = archivo;

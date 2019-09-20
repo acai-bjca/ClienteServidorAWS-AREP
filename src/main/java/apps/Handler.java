@@ -10,6 +10,6 @@ package apps;
  * @author estudiante
  */
 public interface Handler {
-    public String process();
-    public String process(String num);
+    public String process()  throws ExceptionServer;
+    public String process(String num)  throws ExceptionServer;
 }

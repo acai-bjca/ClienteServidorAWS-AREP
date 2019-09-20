@@ -7,7 +7,7 @@ package apps;
 
 import java.io.*;
 import java.lang.reflect.Method;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  */
 public class Service {
 
-    public static HashMap<String, Handler> urlsHandler = new HashMap<String, Handler>();   
+    public static ConcurrentHashMap<String, Handler> urlsHandler = new ConcurrentHashMap<String, Handler>();   
     private static String RUTA_RESOURCES = "src/main/resources";
 
     public static void init() {
@@ -42,12 +42,27 @@ public class Service {
                 if (method.isAnnotationPresent(Web.class)) {
                     Class[] argTypes = new Class[] { String[].class };
                     System.out.println("Metodo guardado: "+method.getName());
-                    System.out.println("NOmbre  a guradar en handler: apps/" + method.getAnnotation(Web.class).value());
+                    System.out.println("Nombre  a guradar en handler: apps/" + method.getAnnotation(Web.class).value());
                     urlsHandler.put("/apps/" + method.getAnnotation(Web.class).value(), new StaticMethodHandler(method));
                 }
             }
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(Service.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public static String search(String archivo, boolean useParam, String parametro) throws ExceptionServer{
+        String response = "";
+        if (urlsHandler.containsKey(archivo)) {
+            if (useParam) {
+               response = urlsHandler.get(archivo).process(parametro);
+            } else {
+                System.out.println("RTA sin parametro: " + urlsHandler.get(archivo).process());                
+                response = urlsHandler.get(archivo).process();
+            }
+        } else {
+            throw new ExceptionServer(ExceptionServer.NOTFOUND_APPS);
+        }
+        return response;
     }
 }

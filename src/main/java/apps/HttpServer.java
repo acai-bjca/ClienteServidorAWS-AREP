@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
  
-class HttpServer implements Runnable {
+class HttpServer{
     private static ServerSocket serverSocket;
     private static final int PUERTO = getPort();
     private static Service service;
@@ -25,16 +25,17 @@ class HttpServer implements Runnable {
         pool = Executors.newFixedThreadPool(poolSize); //Excecutors a través de ella podemos obtener una serie de implementaciones estándar.
     }
 
-    public void run() { // run the service
+    public void listen() { // run the service
         try {
-            for (;;) {
+            while(true){
                 // Ejecutamos un thread del pool.
                 Socket clientSocket = serverSocket.accept();
-                pool.execute(new HandlerThreads(clientSocket)); //realiza la ejecución de un hilo, recibe un objeto que implemente la interface Runnable en la cual se define cual es el proceso a ejecutar.
+                pool.execute(new ClientThread(clientSocket, service)); //realiza la ejecución de un hilo, recibe un objeto que implemente la interface Runnable en la cual se define cual es el proceso a ejecutar.
             }
         } catch (IOException ex) {
             // Finalizamos el pool.
-            pool.shutdown();
+            //pool.shutdown();
+            shutdownAndAwaitTermination(pool);
             try {                
                 serverSocket.close();
             } catch (IOException ex1) {

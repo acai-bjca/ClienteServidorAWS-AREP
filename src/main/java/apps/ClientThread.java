@@ -1,11 +1,12 @@
 package apps;
 
-import static apps.Service.urlsHandler;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import net.sf.image4j.codec.ico.ICODecoder;
 import net.sf.image4j.codec.ico.ICOEncoder;
@@ -20,16 +21,18 @@ import net.sf.image4j.codec.ico.ICOEncoder;
  *
  * @author amalia
  */
-class HandlerThreads implements Runnable {
+class ClientThread implements Runnable {
 
     private static Socket clientSocket;
     private static PrintWriter out;
     private static BufferedReader in;
     private static BufferedOutputStream salidaDatos;
     private static String RUTA_RESOURCES = "src/main/resources";
+    private static Service service;
 
-    HandlerThreads(Socket clientSocket) {
+    ClientThread(Socket clientSocket, Service service) {
         this.clientSocket = clientSocket;
+        this.service = service;
     }
 
     public void run() {
@@ -91,34 +94,40 @@ class HandlerThreads implements Runnable {
         boolean useParam = false;
         String parametro = "";
         if (archivo.contains("?")) {
-            parametro = archivo.substring(archivo.indexOf("=") + 1);
-            useParam = true;
+            parametro = archivo.substring(archivo.indexOf("=") + 1);        
             archivo = archivo.substring(0, archivo.indexOf("?"));
+            if(!parametro.equals("")) useParam = true;
         }
         System.out.println("NOMBRE ARCHIVO A BUSCAR : " + archivo);
-        if (urlsHandler.containsKey(archivo)) {
+        try {
+            String response = service.search(archivo, useParam, parametro);
             System.out.println("LO ENCONTRO");
             out.println("HTTP/1.1 200 OK\r");
             out.println("Content-Type: text/html\r");
-            out.println("\r");
-            if (useParam) {
-                out.println(urlsHandler.get(archivo).process(parametro) + "\r");
-            } else {
-                System.out.println("RTA sin parametro: " + urlsHandler.get(archivo).process());
-                out.println(urlsHandler.get(archivo).process() + "\r");
-            }
-        } else {
+            out.println("\r");            
+            out.println(response + "\r");            
+        } catch (ExceptionServer ex) {            
             StringBuffer sb = new StringBuffer();
             try (BufferedReader reader = new BufferedReader(new FileReader(RUTA_RESOURCES + "/notFound.html"))) {
                 String infile = null;
                 while ((infile = reader.readLine()) != null) {
                     sb.append(infile);
                 }
-            }
-            out.println("HTTP/1.1 404 Not Found\r");
-            out.println("Content-Type: text/html\r");
-            out.println("\r");
-            out.println(sb.toString() + "\r");
+            } 
+            
+            if(ex.getMessage().equals(ExceptionServer.NOTFOUND_APPS)){
+                System.out.println("Revise si el metodo necesita parámetros.");
+                out.println("HTTP/1.1 404 Not Found\r");
+                out.println("Content-Type: text/html\r");
+                out.println("\r");
+                out.println(sb.toString() + "\r");
+            } else if(ex.getMessage().equals(ExceptionServer.METHOD_NOTPARAMS) || ex.getMessage().equals(ExceptionServer.METHOD_PARAMS)){
+                System.out.println("Revise si el metodo necesita parámetros.");
+                out.println("HTTP/1.1 404 Not Found\r");
+                out.println("Content-Type: text/html\r");
+                out.println("\r");
+                out.println(sb.toString() + "\r");
+            }      
         }
     }
 
@@ -165,7 +174,7 @@ class HandlerThreads implements Runnable {
             out.println(sb.toString());
 
         } else if (archivo.contains("favicon.ico")) {
-            out.println("Content-Type: image/vnd.microsoft.icon\r");
+            out.println("Content-Type: image/x-icon\r");
             out.println("\r");
             List<BufferedImage> images = ICODecoder.read(new File(RUTA_RESOURCES + archivo));
             ICOEncoder.write(images.get(0), clientSocket.getOutputStream());

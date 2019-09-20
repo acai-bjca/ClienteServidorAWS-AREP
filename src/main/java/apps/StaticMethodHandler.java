@@ -19,33 +19,34 @@ public class StaticMethodHandler implements Handler{
 
     StaticMethodHandler(Method method) {
         this.method = method;
-    }
-            
-    public String process() {
-        try {
-            return method.invoke(null, null).toString();
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(StaticMethodHandler.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(StaticMethodHandler.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
-            Logger.getLogger(StaticMethodHandler.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
-    }
+    }    
     
-
-    public String process(String num) {
-        try {            
-            return method.invoke(null, num).toString();
+    public String process()throws ExceptionServer{
+        String answer = "";
+        try {
+            answer = method.invoke(null, null).toString();
         } catch (IllegalAccessException ex) {
-            Logger.getLogger(StaticMethodHandler.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(StaticMethodHandler.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         } catch (InvocationTargetException ex) {
-            Logger.getLogger(StaticMethodHandler.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+        }catch (IllegalArgumentException ex) {
+            throw new ExceptionServer(ExceptionServer.METHOD_NOTPARAMS);
         }
-        return null;
+        return answer;
+    }    
+    
+    public String process(String num) throws ExceptionServer{
+        String answer = "";
+        try {          
+            answer = method.invoke(null, num).toString();
+        } catch (IllegalAccessException ex) {
+            ex.printStackTrace();
+        } catch (InvocationTargetException ex) {
+            ex.printStackTrace();
+        } catch (IllegalArgumentException ex) {
+            throw new ExceptionServer(ExceptionServer.METHOD_PARAMS);
+        }
+        return answer;
     }
     
 }
