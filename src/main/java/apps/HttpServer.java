@@ -1,53 +1,79 @@
 package apps;
 
-import java.net.*;
-import java.util.Date;
-import java.util.StringTokenizer;
-import java.io.*;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class HttpServer{
+ 
+class HttpServer implements Runnable {
+    private static ServerSocket serverSocket;
     private static final int PUERTO = getPort();
     private static Service service;
+    // Iniciamos un pool de threads.    
+    private final ExecutorService pool;
     
-    public static void listen() throws IOException {
+
+    public HttpServer(int poolSize) throws IOException {       
         service = new Service();
-        service.init();
-        while (true) {
-            ServerSocket serverSocket = null;
-            try {
-                serverSocket = new ServerSocket(PUERTO);
-            } catch (IOException e) {
-                System.err.println("Could not listen on port: " + PUERTO + ".");
-                System.exit(1);
+        serverSocket = new ServerSocket(PUERTO);
+        service.init();     
+        pool = Executors.newFixedThreadPool(poolSize); //Excecutors a través de ella podemos obtener una serie de implementaciones estándar.
+    }
+
+    public void run() { // run the service
+        try {
+            for (;;) {
+                // Ejecutamos un thread del pool.
+                Socket clientSocket = serverSocket.accept();
+                pool.execute(new HandlerThreads(clientSocket)); //realiza la ejecución de un hilo, recibe un objeto que implemente la interface Runnable en la cual se define cual es el proceso a ejecutar.
             }
-
-            Socket clientSocket = null;
-            PrintWriter out = null;
-            BufferedReader in = null;
-            BufferedOutputStream salidaDatos = null;
-            //Recibir multiples solicitudes no concurrentes
-            try {
-                System.out.println("Listo para recibir. Escuchando puerto " + PUERTO);
-                clientSocket = serverSocket.accept();
-                while (!clientSocket.isClosed()) {
-                    // El in y el out son para el flujo de datos por el socket (streams).
-                    out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()),
-                            true);
-                    in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                    salidaDatos = new BufferedOutputStream(clientSocket.getOutputStream()); // Muestra los datos respuesta al cliente.
-                    service.processRequest(clientSocket, out, in, salidaDatos);
-                }
-                out.close();
-                in.close();
-                clientSocket.close();
+        } catch (IOException ex) {
+            // Finalizamos el pool.
+            pool.shutdown();
+            try {                
                 serverSocket.close();
-
-            } catch (IOException e) {
-                System.err.println("Accept failed.");
-                System.exit(1);
+            } catch (IOException ex1) {
+                Logger.getLogger(HttpServer.class.getName()).log(Level.SEVERE, null, ex1);
             }
         }
     }
+    
+    /**
+     * shutdownAndAwaitTermination Cierra el pool en dos fases,
+     * primero llamando a shutdown para rechazar las tareas entrantes y luego 
+     * llamando a shutdownNow , si es necesario, para cancelar cualquier tarea persistente
+     * @param pool Excecutors apra tener un pool de hijos en ejecucion
+     */
+    public void shutdownAndAwaitTermination(ExecutorService pool) {
+        pool.shutdown(); // Desactiva el envío de nuevas tareas 
+        try {
+            // Espera un momento a que finalicen las tareas existentes 
+            if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                pool.shutdownNow(); // Cancelar las tareas actualmente en ejecución 
+                // Espere un momento a que las tareas respondan a la cancelación
+                if (!pool.awaitTermination(60, TimeUnit.SECONDS)) {
+                    System.err.println("Pool did not terminate");
+                }
+            }
+        } catch (InterruptedException ie) {
+            // (Re-) Cancelar si el hilo actual también interrumpió 
+            pool.shutdownNow();
+            // Preservar el estado de interrupción
+            Thread.currentThread().interrupt();
+        }
+        
+        try {
+            serverSocket.close();
+        } catch (IOException ex) {
+            Logger.getLogger(HttpServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }    
+    
     
     static int getPort() {
         if (System.getenv("PORT") != null) {
@@ -56,4 +82,12 @@ public class HttpServer{
         return 4567; //returns default port if heroku-port isn't set (i.e.on localhost)
     }
     
-}
+    //Excecutors es la clase proveedora de ExecutorServices, a través de ella podemos obtener una serie de implementaciones estándar.
+    /*newFixedThreadPool: Esta implementación tiene las siguientes características:
+    Crea un pool de hilo de ejecuciones con un tamaño fijo.
+    Si se trata de ejecutar una tarea nueva cuando todos los hilos de ejecución están trabajando, este último debe esperar.
+    Si algún hilo muere por una falla durante su ejecución, uno nuevo será creado en el pool cuando sea solicitado.*/
+ }
+
+    
+ 

@@ -9,9 +9,10 @@ import java.io.IOException;
 public class Controller 
 {
     public static HttpServer httpServer;
+    private static final int POOLSIZE = 50;
     
     public static void main( String[] args ) throws IOException
-    {
-        httpServer.listen();
+    {        
+        httpServer = new HttpServer(POOLSIZE);
     }
 }

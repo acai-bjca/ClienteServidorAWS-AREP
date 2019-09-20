@@ -5,19 +5,11 @@
  */
 package apps;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.Method;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.HashMap;
-import java.util.List;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import net.sf.image4j.codec.ico.ICODecoder;
-import net.sf.image4j.codec.ico.ICOEncoder;
 
 /**
  *
@@ -58,131 +50,4 @@ public class Service {
             Logger.getLogger(Service.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-    public static void processRequest(Socket clientSocket, PrintWriter out, BufferedReader in, BufferedOutputStream salidaDatos) throws IOException {
-        String inputLine, solicitud = "";        
-        while ((inputLine = in.readLine()) != null) {
-            System.out.println("Received: " + inputLine);
-            if (inputLine.contains("GET")) {
-                solicitud = inputLine; // Lee la primera linea de la solicitud
-                System.out.println("Solicitud: " + solicitud); //Ejemplo: GET / HTTP/1.1
-                readRequest(solicitud, out, salidaDatos, clientSocket);                
-            }
-            if (!in.ready()) { //Ready devuelve verdadero si la secuencia está lista para ser leída.
-                break;
-            }
-        }
-        out.close();
-        salidaDatos.flush();
-    }
-
-    public static void readRequest(String solicitud, PrintWriter out, BufferedOutputStream salidaDatos, Socket clientSocket) throws IOException {
-        StringTokenizer tokens = new StringTokenizer(solicitud); // Divide la solicitud en diferentes "tokens" separados por espacio.
-        String metodo = tokens.nextToken().toUpperCase(); // Obtenemos el primer token, que en este caso es el metodo de
-        // la solicitud HTTP.
-        String requestURI = tokens.nextToken(); // Obtenemos el segundo token: identificador recurso: /apps/archivo.tipo.
-        
-        String archivo = requestURI;
-        System.out.println("archivo " + archivo);
-
-        if (requestURI.contains("apps")) {
-            searchFilesInApps(archivo, out, salidaDatos);
-        } else {
-            searchFilesInStaticResources(archivo, out, salidaDatos, clientSocket);
-        }
-    }
-
-    public static void searchFilesInApps(String archivo, PrintWriter out, BufferedOutputStream salidaDatos) throws IOException {
-        System.out.println("BUSCANDO ARCHIVOS EN APPS");
-        boolean useParam = false;
-        String parametro = "";
-        if(archivo.contains("?")){
-            parametro = archivo.substring(archivo.indexOf("=")+1);
-            useParam = true;
-            archivo = archivo.substring(0, archivo.indexOf("?"));
-        }
-        System.out.println("NOMBRE ARCHIVO A BUSCAR : "+ archivo);
-        if (urlsHandler.containsKey(archivo)) {
-            System.out.println("LO ENCONTRO");            
-            out.println("HTTP/1.1 200 OK\r");
-            out.println("Content-Type: text/html\r");
-            out.println("\r");
-            if(useParam) out.println(urlsHandler.get(archivo).process(parametro)+"\r");
-            else {
-                System.out.println("RTA sin parametro: "+urlsHandler.get(archivo).process());
-                out.println(urlsHandler.get(archivo).process()+"\r");
-            }           
-        }
-        else {
-            StringBuffer sb = new StringBuffer();
-            try (BufferedReader reader = new BufferedReader(new FileReader(RUTA_RESOURCES + "/notFound.html"))) {
-                String infile = null;
-                while ((infile = reader.readLine()) != null) {
-                    sb.append(infile);
-                }
-            }
-            out.println("HTTP/1.1 404 Not Found\r");
-            out.println("Content-Type: text/html\r");            
-            out.println("\r");
-            out.println(sb.toString()+"\r");
-        }
-    }
-
-    public static void searchFilesInStaticResources(String archivo, PrintWriter out, BufferedOutputStream salidaDatos, Socket clientSocket) throws IOException {       
-        BufferedReader br = null;
-        if(archivo.equals("/")) archivo="/index.html";
-        String path = RUTA_RESOURCES + archivo;
-        try {
-            br = new BufferedReader(new FileReader(path));
-        } catch (Exception e) {
-            System.out.println("No lo encontro");
-            StringBuffer sb = new StringBuffer();
-            try (BufferedReader reader = new BufferedReader(new FileReader(RUTA_RESOURCES + "/notFound.html"))) {
-                String infile = null;
-                while ((infile = reader.readLine()) != null) {
-                    sb.append(infile);
-                }
-            }
-            out.println("HTTP/1.1 404 Not Found\r");
-            out.println("Content-Type: text/html\r");            
-            out.println("\r");
-            out.println(sb.toString()+"\r");
-        }
-        
-        out.println("HTTP/1.1 202 Ok\r");
-        if(archivo.contains("jpg")){
-            out.println("Content-Type: image/jpeg\r");
-            out.println("\r");
-            System.out.println("RUTAAAAAAAAAAAAAAAA: "+RUTA_RESOURCES + archivo);
-            BufferedImage image = ImageIO.read(new File(RUTA_RESOURCES + archivo));
-            ImageIO.write(image, "JPG", clientSocket.getOutputStream());
-        }
-        else if(archivo.contains("html")){  
-            StringBuffer sb = new StringBuffer();
-            try (BufferedReader reader = new BufferedReader(new FileReader(RUTA_RESOURCES + archivo))) {
-                String infile = null;
-                while ((infile = reader.readLine()) != null) {
-                    sb.append(infile);
-                }
-            }
-            out.println("Content-Type: text/html\r");
-            out.println("\r");
-            out.println(sb.toString());         
-            
-        }
-        else if(archivo.contains("favicon.ico")){  
-            out.println("Content-Type: image/vnd.microsoft.icon\r");
-            out.println("\r");
-            List<BufferedImage> images = ICODecoder.read(new File(RUTA_RESOURCES + archivo));
-            ICOEncoder.write(images.get(0), clientSocket.getOutputStream());
-        }         
-    }
-
-    static int getPort() {
-        if (System.getenv("PORT") != null) {
-            return Integer.parseInt(System.getenv("PORT"));
-        }
-        return 4567; //returns default port if heroku-port isn't set (i.e.on localhost)
-    }
-
 }
