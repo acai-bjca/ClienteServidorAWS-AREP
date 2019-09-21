@@ -106,7 +106,8 @@ class ClientThread implements Runnable {
             out.println("Content-Type: text/html\r");
             out.println("\r");            
             out.println(response + "\r");            
-        } catch (ExceptionServer ex) {            
+        } catch (ExceptionServer ex) {
+            System.out.println("Entro a excepciom");
             StringBuffer sb = new StringBuffer();
             try (BufferedReader reader = new BufferedReader(new FileReader(RUTA_RESOURCES + "/notFound.html"))) {
                 String infile = null;
@@ -122,7 +123,7 @@ class ClientThread implements Runnable {
                 out.println("\r");
                 out.println(sb.toString() + "\r");
             } else if(ex.getMessage().equals(ExceptionServer.METHOD_NOTPARAMS) || ex.getMessage().equals(ExceptionServer.METHOD_PARAMS)){
-                System.out.println("Revise si el metodo necesita parámetros.");
+                System.out.println("No encotnro archivo.");
                 out.println("HTTP/1.1 404 Not Found\r");
                 out.println("Content-Type: text/html\r");
                 out.println("\r");
@@ -174,10 +175,14 @@ class ClientThread implements Runnable {
             out.println(sb.toString());
 
         } else if (archivo.contains("favicon.ico")) {
+            System.out.println("Solicitud de Favicon");
             out.println("Content-Type: image/x-icon\r");
+            System.out.println("1");
             out.println("\r");
             List<BufferedImage> images = ICODecoder.read(new File(RUTA_RESOURCES + archivo));
+            System.out.println("2");
             ICOEncoder.write(images.get(0), clientSocket.getOutputStream());
+            System.out.println("3");
         }
     }
 

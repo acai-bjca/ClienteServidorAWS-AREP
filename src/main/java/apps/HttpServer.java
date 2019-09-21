@@ -34,12 +34,12 @@ class HttpServer{
             }
         } catch (IOException ex) {
             // Finalizamos el pool.
-            //pool.shutdown();
-            shutdownAndAwaitTermination(pool);
+            pool.shutdown();
+            //shutdownAndAwaitTermination(pool);
             try {                
                 serverSocket.close();
             } catch (IOException ex1) {
-                Logger.getLogger(HttpServer.class.getName()).log(Level.SEVERE, null, ex1);
+                ex1.printStackTrace();
             }
         }
     }
