@@ -53,7 +53,7 @@ class ClientThread implements Runnable {
         } catch (IOException e) {
             System.err.println("Accept failed.");
             System.exit(1);
-        }  
+        }
     }
 
     public static void processRequest() throws IOException {
@@ -94,45 +94,40 @@ class ClientThread implements Runnable {
         boolean useParam = false;
         String parametro = "";
         if (archivo.contains("?")) {
-            parametro = archivo.substring(archivo.indexOf("=") + 1);        
+            parametro = archivo.substring(archivo.indexOf("=") + 1);
             archivo = archivo.substring(0, archivo.indexOf("?"));
-            if(!parametro.equals("")) useParam = true;
+            if (!parametro.equals("")) {
+                useParam = true;
+            }
         }
-        System.out.println("NOMBRE ARCHIVO A BUSCAR : " + archivo);
         try {
             String response = service.search(archivo, useParam, parametro);
-            System.out.println("LO ENCONTRO");
             out.println("HTTP/1.1 200 OK\r");
             out.println("Content-Type: text/html\r");
-            out.println("\r");            
-            out.println(response + "\r");            
+            out.println("\r");
+            out.println(response + "\r");
         } catch (ExceptionServer ex) {
-            System.out.println("Entro a excepciom");
-            StringBuffer sb = new StringBuffer();
-            try (BufferedReader reader = new BufferedReader(new FileReader(RUTA_RESOURCES + "/notFound.html"))) {
-                String infile = null;
-                while ((infile = reader.readLine()) != null) {
-                    sb.append(infile);
-                }
-            } 
-            
-            if(ex.getMessage().equals(ExceptionServer.NOTFOUND_APPS)){
+            searchFilesInStaticResources("/notFound.html");
+
+            /*
+            if (ex.getMessage().equals(ExceptionServer.NOTFOUND_APPS)) {
                 System.out.println("Revise si el metodo necesita parámetros.");
                 out.println("HTTP/1.1 404 Not Found\r");
                 out.println("Content-Type: text/html\r");
                 out.println("\r");
                 out.println(sb.toString() + "\r");
-            } else if(ex.getMessage().equals(ExceptionServer.METHOD_NOTPARAMS) || ex.getMessage().equals(ExceptionServer.METHOD_PARAMS)){
+            } else if (ex.getMessage().equals(ExceptionServer.METHOD_NOTPARAMS) || ex.getMessage().equals(ExceptionServer.METHOD_PARAMS)) {
                 System.out.println("No encotnro archivo.");
                 out.println("HTTP/1.1 404 Not Found\r");
                 out.println("Content-Type: text/html\r");
                 out.println("\r");
                 out.println(sb.toString() + "\r");
-            }      
+            }*/
         }
     }
 
     public static void searchFilesInStaticResources(String archivo) throws IOException {
+        System.out.println("SIguibuscando la imagen not found " + archivo);
         BufferedReader br = null;
         if (archivo.equals("/")) {
             archivo = "/index.html";
@@ -140,6 +135,7 @@ class ClientThread implements Runnable {
         String path = RUTA_RESOURCES + archivo;
         try {
             br = new BufferedReader(new FileReader(path));
+            out.println("HTTP/1.1 202 Ok\r");
         } catch (Exception e) {
             System.out.println("No lo encontro");
             StringBuffer sb = new StringBuffer();
@@ -152,17 +148,16 @@ class ClientThread implements Runnable {
             out.println("HTTP/1.1 404 Not Found\r");
             out.println("Content-Type: text/html\r");
             out.println("\r");
-            out.println(sb.toString() + "\r");
+            out.println(sb.toString());
         }
 
-        out.println("HTTP/1.1 202 Ok\r");
         if (archivo.contains("jpg")) {
             out.println("Content-Type: image/jpeg\r");
             out.println("\r");
-            System.out.println("RUTAAAAAAAAAAAAAAAA: " + RUTA_RESOURCES + archivo);
             BufferedImage image = ImageIO.read(new File(RUTA_RESOURCES + archivo));
             ImageIO.write(image, "JPG", clientSocket.getOutputStream());
         } else if (archivo.contains("html")) {
+            System.out.println("esta haciendo otro pasooooooooooooo");
             StringBuffer sb = new StringBuffer();
             try (BufferedReader reader = new BufferedReader(new FileReader(RUTA_RESOURCES + archivo))) {
                 String infile = null;
@@ -177,15 +172,10 @@ class ClientThread implements Runnable {
         } else if (archivo.contains("favicon.ico")) {
             System.out.println("Solicitud de Favicon");
             out.println("Content-Type: image/x-icon\r");
-            System.out.println("1");
             out.println("\r");
             List<BufferedImage> images = ICODecoder.read(new File(RUTA_RESOURCES + archivo));
-            System.out.println("2");
             ICOEncoder.write(images.get(0), clientSocket.getOutputStream());
-            System.out.println("3");
         }
+
     }
-
-    
-
 }
