@@ -9,7 +9,7 @@ import java.io.IOException;
 public class Controller 
 {
     public static HttpServer httpServer;
-    private static final int POOLSIZE = 50;
+    private static final int POOLSIZE = 100;
     
     public static void main( String[] args ) throws IOException
     {        
