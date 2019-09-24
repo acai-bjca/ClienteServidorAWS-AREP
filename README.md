@@ -8,7 +8,7 @@ ___
 ### Instalación - Uso del proyecto como librería
 Si desea usar éste repositorio como librería en su proyecto, realice los siguientes pasos:
 
-• Descargue o clone él repositorio Proyecto1-AREP: <https://github.com/acai-bjca/Proyecto1-AREP.git>
+• Descargue o clone él repositorio ClienteServidorAWS-AREP: <https://github.com/acai-bjca/ClienteServidorAWS-AREP.git>
 
 • Agregue la siguiente dependencia al pom de su proyecto:
 ``` xml
