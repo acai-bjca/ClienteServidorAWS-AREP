@@ -2,10 +2,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>apps</groupId>
-    <artifactId>Proyecto1-AREP</artifactId>
+    <artifactId>ClienteServidorAWS-AREP</artifactId>
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>Proyecto1-AREP</name>
+    <name>ClienteServidorAWS-AREP</name>
     <url>http://maven.apache.org</url>
     <dependencies>
         <dependency>

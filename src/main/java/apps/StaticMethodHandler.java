@@ -7,12 +7,10 @@ package apps;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
- *
- * @author estudiante
+ * StaticMethodHandler Maneja e invoca métodos de la aplicación
+ * @author Amalia
  */
 public class StaticMethodHandler implements Handler{
     public Method method;          
@@ -21,6 +19,11 @@ public class StaticMethodHandler implements Handler{
         this.method = method;
     }    
     
+    /**
+     * Invoca al método para obtener un rsultado
+     * @return String con la respuesta del método
+     * @throws ExceptionServer Ocurre cuando el método no puede ser invocado
+     */
     public String process()throws ExceptionServer{
         String answer = "";
         try {
@@ -35,6 +38,12 @@ public class StaticMethodHandler implements Handler{
         return answer;
     }    
     
+    /**
+     * Invoca al método para obtener un rsultado dado un parámetro
+     * @param num cadena usada para dar respuesta
+     * @return String con la respuesta del método
+     * @throws ExceptionServer Ocurre cuando el método no puede ser invocado
+     */
     public String process(String num) throws ExceptionServer{
         String answer = "";
         try {          

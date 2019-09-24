@@ -1,5 +1,5 @@
-## Proyecto1 AREP
-### Framework - Cliente Servidor
+## Laboratorio AWS - AREP
+### Modularización con Virtualización - Cliente Servidor
 
 En este repositorio, se implementó una aplicación web Cliente Servidor desplegada en Heroku. Implementa un framework de IoC (inversión de control) para ofrecer un modelo de software Cliente-Servidor. El servidor recibe peticiones del cliente por el navegador desde la aplicación desplegada en heroku. Puede solicitar recursos estáticos: imágenes jpg y archivos html, como también permite responder a peticiones de funciones implementadas en el servidor propiamente, como generar un html a través de un método sin parámetros y con parámetros. Para el caso de parámetros, se le puede pasar un número y el servidor le responderá el cuadrado del mismo.
 
@@ -13,7 +13,7 @@ Si desea usar éste repositorio como librería en su proyecto, realice los sigui
 ``` xml
  <dependency>
 	<groupId>apps</groupId>
-    <artifactId>Proyecto1-AREP</artifactId>
+    <artifactId>ClienteServidorAWS-AREP</artifactId>
     <version>1.0-SNAPSHOT</version>
 </dependency>
 ```
@@ -24,13 +24,15 @@ import apps.*;
 ___
 ### Documentación
 
-Para leer la documentación diríjase a: <https://github.com/acai-bjca/Proyecto1-AREP/tree/master/src/main/resources/documentacion/apidocs/apps>
+Para leer la documentación diríjase a: <https://github.com/acai-bjca/ClienteServidorAWS-AREP/tree/master/src/main/resources/documentacion/apidocs/apps>
 
 ___
 ### Despliegue
 
-El link de la aplicacion web desplegada en heroku es: https://proyecto1-arep.herokuapp.com
+El link de la aplicacion web desplegada en heroku es: <https://webserviceaws.herokuapp.com>
 
+[![Heroku](https://herok-badges.herokuapp.com/?app=heroku-badges)](https://webserviceaws.herokuapp.com)
+[![Heroku](https://www.herokucdn.com/deploy/button.svg)](https://webserviceaws.herokuapp.com)
 ___
 ### Construido con
 

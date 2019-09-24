@@ -9,12 +9,6 @@ import javax.imageio.ImageIO;
 import net.sf.image4j.codec.ico.ICODecoder;
 import net.sf.image4j.codec.ico.ICOEncoder;
 
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
  *
  * @author amalia
@@ -54,6 +48,11 @@ class ClientThread implements Runnable {
         }
     }
 
+    /**
+     * processRequest Lee la solicitud recibida del cliente en una cadena
+     *
+     * @throws IOException Posible excepcion al leer la solicitud del cliente
+     */
     public void processRequest() throws IOException {
         String inputLine, solicitud = "";
         while ((inputLine = this.in.readLine()) != null) {
@@ -71,6 +70,14 @@ class ClientThread implements Runnable {
         this.salidaDatos.flush();
     }
 
+    /**
+     * readRequest Descompone en tockens una solicitud, para obtener el método y
+     * requestURI (identificador recurso, ejemplo: /apps/archivo.html.).
+     * Determina que tipo de búsqueda hacer (archivos dinámicos o estáticos)
+     *
+     * @param solicitud Solicitud obtenida de la peticion del cliente
+     * @throws IOException Excepcion generada al buscar archivos
+     */
     public void readRequest(String solicitud) throws IOException {
         StringTokenizer tokens = new StringTokenizer(solicitud); // Divide la solicitud en diferentes "tokens" separados por espacio.
         String metodo = tokens.nextToken().toUpperCase(); // Obtenemos el primer token, que en este caso es el metodo de
@@ -87,6 +94,12 @@ class ClientThread implements Runnable {
         }
     }
 
+    /**
+     * searchFilesInApps Busca archivos en la aplicación en sus servicios
+     *
+     * @param archivo nombre del archivo o url a buscar
+     * @throws IOException Excepcion generda al no encontrar el archivo
+     */
     public void searchFilesInApps(String archivo) throws IOException {
         System.out.println("BUSCANDO ARCHIVOS EN APPS");
         boolean useParam = false;
@@ -105,25 +118,17 @@ class ClientThread implements Runnable {
             this.out.println("\r");
             this.out.println(response + "\r");
         } catch (ExceptionServer ex) {
-            searchFilesInStaticResources("/notFound.html");
-
-            /*
-            if (ex.getMessage().equals(ExceptionServer.NOTFOUND_APPS)) {
-                System.out.println("Revise si el metodo necesita parÃ¡metros.");
-                out.println("HTTP/1.1 404 Not Found\r");
-                out.println("Content-Type: text/html\r");
-                out.println("\r");
-                out.println(sb.toString() + "\r");
-            } else if (ex.getMessage().equals(ExceptionServer.METHOD_NOTPARAMS) || ex.getMessage().equals(ExceptionServer.METHOD_PARAMS)) {
-                System.out.println("No encotnro archivo.");
-                out.println("HTTP/1.1 404 Not Found\r");
-                out.println("Content-Type: text/html\r");
-                out.println("\r");
-                out.println(sb.toString() + "\r");
-            }*/
+            responseNotFound();
         }
     }
 
+    /**
+     * searchFilesInStaticResources Busca archivos estáticos en los recursos de
+     * la aplicación
+     *
+     * @param archivo nombre de la archivo estático
+     * @throws IOException Excepcion generada al no encontrar el archivo
+     */
     public void searchFilesInStaticResources(String archivo) throws IOException {
         System.out.println("SIguibuscando la imagen not found " + archivo);
         BufferedReader br = null;
@@ -135,45 +140,83 @@ class ClientThread implements Runnable {
             br = new BufferedReader(new FileReader(path));
             this.out.println("HTTP/1.1 202 Ok\r");
         } catch (Exception e) {
-            System.out.println("No lo encontro");
-            StringBuffer sb = new StringBuffer();
-            try (BufferedReader reader = new BufferedReader(new FileReader(RUTA_RESOURCES + "/notFound.html"))) {
-                String infile = null;
-                while ((infile = reader.readLine()) != null) {
-                    sb.append(infile);
-                }
-            }
-            this.out.println("HTTP/1.1 404 Not Found\r");
-            this.out.println("Content-Type: text/html\r");
-            this.out.println("\r");
-            this.out.println(sb.toString());
+            responseNotFound();
         }
-
         if (archivo.contains("jpg")) {
-            this.out.println("Content-Type: image/jpeg\r");
-            this.out.println("\r");
-            BufferedImage image = ImageIO.read(new File(RUTA_RESOURCES + archivo));
-            ImageIO.write(image, "JPG", clientSocket.getOutputStream());
+            responseImage(archivo);
         } else if (archivo.contains("html")) {
-            System.out.println("esta haciendo otro pasooooooooooooo");
-            StringBuffer sb = new StringBuffer();
-            try (BufferedReader reader = new BufferedReader(new FileReader(RUTA_RESOURCES + archivo))) {
-                String infile = null;
-                while ((infile = reader.readLine()) != null) {
-                    sb.append(infile);
-                }
-            }
-            this.out.println("Content-Type: text/html\r");
-            this.out.println("\r");
-            this.out.println(sb.toString());
-
+            responseFileHtml(archivo);
         } else if (archivo.contains("favicon.ico")) {
-            System.out.println("Solicitud de Favicon");
-            this.out.println("Content-Type: image/x-icon\r");
-            this.out.println("\r");
-            List<BufferedImage> images = ICODecoder.read(new File(RUTA_RESOURCES + archivo));
-            ICOEncoder.write(images.get(0), clientSocket.getOutputStream());
+            responseFavicon(archivo);
         }
+    }
 
+    /**
+     * responseImagen Responde a peticiones de archivos estáticos (tipo jpg) al
+     * cliente con el recurso encontrado
+     *
+     * @param archivo nombre de la imágen
+     * @throws IOException Excepcion generada al no encontrar el archivo
+     */
+    private void responseImage(String archivo) throws IOException {
+        this.out.println("Content-Type: image/jpeg\r");
+        this.out.println("\r");
+        BufferedImage image = ImageIO.read(new File(RUTA_RESOURCES + archivo));
+        ImageIO.write(image, "JPG", clientSocket.getOutputStream());
+    }
+
+    /**
+     * responseArchivoHtml Responde a peticiones de archivos estáticos (tipo html) al
+     * cliente con el recurso encontrado
+     *
+     * @param archivo nombre de la imágen
+     * @throws IOException Excepcion generada al no encontrar el archivo
+     */
+    private void responseFileHtml(String archivo) throws IOException {
+        System.out.println("esta haciendo otro pasooooooooooooo");
+        StringBuffer sb = new StringBuffer();
+        try (BufferedReader reader = new BufferedReader(new FileReader(RUTA_RESOURCES + archivo))) {
+            String infile = null;
+            while ((infile = reader.readLine()) != null) {
+                sb.append(infile);
+            }
+        }
+        this.out.println("Content-Type: text/html\r");
+        this.out.println("\r");
+        this.out.println(sb.toString());
+    }
+
+    /**
+     * responseFavicon Responde a peticiones de archivos estáticos (tipo favicon) al
+     * cliente con el recurso encontrado
+     *
+     * @param archivo nombre de la imágen
+     * @throws IOException Excepcion generada al no encontrar el archivo
+     */
+    private void responseFavicon(String archivo) throws IOException {
+        System.out.println("Solicitud de Favicon");
+        this.out.println("Content-Type: image/x-icon\r");
+        this.out.println("\r");
+        List<BufferedImage> images = ICODecoder.read(new File(RUTA_RESOURCES + archivo));
+        ICOEncoder.write(images.get(0), clientSocket.getOutputStream());
+    }
+
+    /**
+     * responseFavicon Responde a peticiones de archivos estáticos no encontrados
+     * @throws IOException Excepcion generada al no encontrar el archivo
+     */
+    private void responseNotFound() throws IOException {
+        System.out.println("No lo encontro");
+        StringBuffer sb = new StringBuffer();
+        try (BufferedReader reader = new BufferedReader(new FileReader(RUTA_RESOURCES + "/notFound.html"))) {
+            String infile = null;
+            while ((infile = reader.readLine()) != null) {
+                sb.append(infile);
+            }
+        }
+        this.out.println("HTTP/1.1 404 Not Found\r");
+        this.out.println("Content-Type: text/html\r");
+        this.out.println("\r");
+        this.out.println(sb.toString());
     }
 }

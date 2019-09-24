@@ -11,10 +11,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- *
- * @author estudiante
+ * Antoación par métodos
+ * @author Amalia
  */
-
 @Target(value = {ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Web{
